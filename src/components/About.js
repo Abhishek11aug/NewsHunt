@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 
-export default class 
- extends Component {
+// eslint-disable-next-line
+export default class extends Component {
   render() {
     return (
       <div className='container'>
 
         <div className='w-25 m-auto my-3'>
-            <img src="./About.jpg" class="img-fluid rounded-top" alt=""/>
+            <img src="./About.jpg" className="img-fluid rounded-top" alt=""/>
         </div>
         <h2 className='text-center'>PANDA NEWS</h2>
 
