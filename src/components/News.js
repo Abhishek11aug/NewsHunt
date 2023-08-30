@@ -12,8 +12,8 @@ export default class News extends Component {
     category: 'general',
   };
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       articles: [],
       page: 1,
@@ -32,19 +32,21 @@ export default class News extends Component {
     }
   }
 
-  async fetchNewsByCategory(category) {
+  fetchNewsByCategory = async (category) => {
     this.setState({
       loading: true,
     });
 
-    let url = `https://newsapi.org/v2/everything?q=${category}&apiKey=c59fcb8f4c604f6ebafcc2972c2af264&pageSize=12`;
+    const apiKey = 'c59fcb8f4c604f6ebafcc2972c2af264';
+    const pageSize = 12;
+    const url = `https://newsapi.org/v2/everything?q=${category}&apiKey=${apiKey}&pageSize=${pageSize}`;
 
     try {
-      let response = await fetch(url);
-      let data = await response.json();
+      const response = await fetch(url);
+      const data = await response.json();
       this.setState({
         articles: data.articles,
-        totalPage: Math.ceil(data.totalResults / 12),
+        totalPage: Math.ceil(data.totalResults / pageSize),
         loading: false,
         page: 1,
       });
@@ -57,38 +59,30 @@ export default class News extends Component {
         page: 1,
       });
     }
-  }
-
-  changeToNextPage = async () => {
-    this.setState({
-      loading: true,
-    });
-    let url = `https://newsapi.org/v2/everything?q=${this.props.category}&apiKey=c59fcb8f4c604f6ebafcc2972c2af264&page=${
-      this.state.page + 1
-    }&pageSize=12`;
-    let data = await fetch(url);
-    let p_data = await data.json();
-    this.setState({
-      page: this.state.page + 1,
-      articles: p_data.articles,
-      loading: false,
-    });
   };
 
-  changeToPrevPage = async () => {
+  changePage = async (pageDelta) => {
     this.setState({
       loading: true,
     });
-    let url = `https://newsapi.org/v2/everything?q=${this.props.category}&apiKey=c59fcb8f4c604f6ebafcc2972c2af264&page=${
-      this.state.page - 1
-    }&pageSize=12`;
-    let data = await fetch(url);
-    let p_data = await data.json();
-    this.setState({
-      page: this.state.page - 1,
-      articles: p_data.articles,
-      loading: false,
-    });
+
+    const nextPage = this.state.page + pageDelta;
+    const url = `https://newsapi.org/v2/everything?q=${this.props.category}&apiKey=c59fcb8f4c604f6ebafcc2972c2af264&page=${nextPage}&pageSize=12`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      this.setState({
+        page: nextPage,
+        articles: data.articles,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      this.setState({
+        loading: false,
+      });
+    }
   };
 
   render() {
@@ -102,19 +96,16 @@ export default class News extends Component {
             <Spinner />
           </div>
           <div className={`${this.state.loading ? 'd-none' : 'row my-4'}`}>
-            {this.state.articles.map((element) => {
-              return (
-                <div className='col-md-4 my-3'>
-                  <NewsItem
-                    key={element.url}
-                    title={element.title}
-                    img_src={element.urlToImage ? element.urlToImage : './imageErr.jpg'}
-                    desc={element.description}
-                    src_link={element.url}
-                  />
-                </div>
-              );
-            })}
+            {this.state.articles.map((element) => (
+              <div className='col-md-4 my-3' key={element.url}>
+                <NewsItem
+                  title={element.title}
+                  img_src={element.urlToImage || './imageErr.jpg'}
+                  desc={element.description}
+                  src_link={element.url}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -123,7 +114,7 @@ export default class News extends Component {
             type='button'
             disabled={this.state.page <= 1}
             className='btn btn-danger fs-3'
-            onClick={this.changeToPrevPage}
+            onClick={() => this.changePage(-1)}
           >
             PREVIOUS
           </button>
@@ -131,7 +122,7 @@ export default class News extends Component {
             type='button'
             disabled={this.state.page === this.state.totalPage}
             className='btn btn-success fs-3'
-            onClick={this.changeToNextPage}
+            onClick={() => this.changePage(1)}
           >
             NEXT
           </button>
